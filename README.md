@@ -16,11 +16,10 @@ Installation
 - Download the code to a directory. 
 - Rename the files in the db directory to remove the .bak extension (this will be re-added after setup to prevent re-running)
 - Follow the notes for download and conversion of geolocation data below. 
+- Run `scripts/setup.sh <db-root-username>`
 
-    scripts/setup.sh <db-root-username>
 
-
-Run with
+Run the server (defaults to port 15501) with
 
     ruby lib/em_server.rb
 
