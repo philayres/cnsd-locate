@@ -13,7 +13,9 @@ This project is a work in progress, but is currently functional to provide:
 Installation
 ----------------
 
-Download the code to a directory. Follow the notes for download and conversion of geolocation data below. 
+- Download the code to a directory. 
+- Rename the files in the db directory to remove the .bak extension (this will be re-added after setup to prevent re-running)
+- Follow the notes for download and conversion of geolocation data below. 
 
     scripts/setup.sh <db-root-username>
 
