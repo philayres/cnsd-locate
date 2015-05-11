@@ -1,4 +1,5 @@
-== cnsd-locate
+cnsd-locate: Consected Locate
+=============================
 
 Consected Locate is a simple API platform providing IP geolocation lookup services to websites and other services needing access to 
 broad geographical positioning of a user based on their current IP address.
@@ -9,8 +10,23 @@ This project is a work in progress, but is currently functional to provide:
 * add new Client API IDs / Secrets, to provide secure access to the service
 * leverage the one-time use of API calls provided by the em-secure-api service at: https://github.com/philayres/em-secure-api
 
+Installation
+----------------
 
-== Geolocation data ==
+Download the code to a directory. Follow the notes for download and conversion of geolocation data below. 
+
+    scripts/setup.sh <db-root-username>
+
+
+Run with
+
+    ruby lib/em_server.rb
+
+Or follow the notes for setting up as an upstart service in https://github.com/philayres/em-secure-api
+
+
+Geolocation data
+----------------
 
 This product includes GeoLite2 data created by MaxMind, available from http://www.maxmind.com
 
