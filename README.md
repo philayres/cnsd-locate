@@ -55,3 +55,8 @@ downloading the data.
     ruby scripts/load_loc_db.rb ./data/GeoLite2-City-Locations-en.csv ./data/cnsd-ip-load-loc.sql
     mysql -u root -p < ./data/cnsd-ip-load-loc.sql
 
+
+License
+-------
+
+Licensed under the Apache License, Version 2.0 (the "License"). See LICENSE for details.
