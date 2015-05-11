@@ -22,9 +22,9 @@ module Location
     end
             
     def self.find_location geoname_id
-      
-      addr = addr.to_i # to ensure no injection
-      condition = "geoname_id = #{geoname_id.to_i}"
+            
+      geoname_id = geoname_id.to_i
+      condition = "geoname_id = #{geoname_id}"
             
       find_all_by condition
     end
