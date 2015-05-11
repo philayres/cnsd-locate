@@ -1,0 +1,223 @@
+sudo -i
+
+apt-get update
+apt-get upgrade
+apt-get install htop nginx
+
+exit
+
+
+gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+#\curl -L https://get.rvm.io | bash -s stable
+#source ~/.rvm/scripts/rvm
+#rvm install 2.1
+#rvm use 2.1
+#rvm 2.1 --default
+
+sudo \curl -L https://get.rvm.io | sudo bash -s stable
+rvm install 2.1
+rvm use 2.1
+rvm 2.1 --default
+
+sudo -i
+
+gem install bundle
+gem install thin
+
+thin install
+thin config -C /etc/thin/cnsd-locate-web.yml -c /home/ubuntu/cnsd-locate-web/  --servers 3 -e production -p 13000 -a 127.0.0.1
+update-rc.d -f thin defaults
+
+
+rvm wrapper ruby-2.1.5 bootup thin
+
+
+
+
+exit
+
+
+mkdir /home/ubuntu/cnsd-locate-web
+mkdir /home/ubuntu/cnsd-locate-web/log
+
+cd /home/ubuntu/cnsd-locate-web
+
+sudo -i
+
+cat > /etc/init.d/thin <<EOF
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          thin
+# Required-Start:    \$local_fs \$remote_fs
+# Required-Stop:     \$local_fs \$remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      S 0 1 6
+# Short-Description: thin initscript
+# Description:       thin
+### END INIT INFO
+
+# Original author: Forrest Robertson
+
+# Do NOT "set -e"
+
+DAEMON=/home/ubuntu/.rvm/bin/bootup_thin
+SCRIPT_NAME=/etc/init.d/thin
+CONFIG_PATH=/etc/thin
+
+# Exit if the package is not installed
+[ -x "\$DAEMON" ] || exit 0
+
+case "\$1" in
+  start)
+  \$DAEMON start --all $CONFIG_PATH
+  ;;
+  stop)
+  \$DAEMON stop --all $CONFIG_PATH
+  ;;
+  restart)
+  \$DAEMON restart --all $CONFIG_PATH
+  ;;
+  *)
+  echo "Usage: \$SCRIPT_NAME {start|stop|restart}" >&2
+  exit 3
+  ;;
+esac
+
+:
+EOF
+
+cat > /etc/nginx/sites-available/cnsd-locate-web <<EOF
+upstream cnsd-locate-web {
+    server 127.0.0.1:13000;
+    server 127.0.0.1:13001;
+    server 127.0.0.1:13002;
+}
+
+
+
+server {
+    listen   80;
+    server_name locate.consected.com
+		""
+		_;
+
+    access_log /home/ubuntu/cnsd-locate-web/log/access.log;
+    error_log  /home/ubuntu/cnsd-locate-web/log/error.log;
+
+    root    /home/ubuntu/cnsd-locate-web/public/;
+    index  index.html;
+
+    location / {
+                          proxy_set_header  X-Real-IP  $remote_addr;
+                          proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+                          proxy_set_header Host $http_host;
+                          proxy_redirect off;
+
+                          if (-f $request_filename/index.html) {
+                                rewrite (.*) $1/index.html 
+				break;
+                          }
+
+                          if (-f $request_filename.html) {
+                                rewrite (.*) $1.html 
+				break;
+                          }
+
+                          if (!-f $request_filename) {
+                                proxy_pass http://cnsd-locate-web;
+                                break;
+                          }
+    }
+
+}
+
+EOF
+rm /etc/nginx/sites-enabled/default 
+ln -s /etc/nginx/sites-available/cnsd-locate-web /etc/nginx/sites-enabled/cnsd-locate-web
+
+++++++++++++
+
+Install the service
+
+sudo -i
+apt-get install memcached git-core libmysqlclient-dev mysql-server-5.5 
+#Enter password for root: jy46x23ynhn7t%&Bomiuhn
+exit
+
+mkdir /home/ubuntu/cnsd-locate
+
+###DO SYNC
+
+cd /home/ubuntu/cnsd-locate
+chmod --recursive 770 ./*
+scripts/setup.sh root
+
+
+
++++++++++
+
+cd data
+
+wget "http://geolite.maxmind.com/download/geoip/database/GeoLite2-City-CSV.zip"
+unzip GeoLite2-City-CSV.zip
+
+mv GeoLite2-City-CSV_20150505/GeoLite2-City-Locations-en.csv .
+cd ..
+
+INFILE=`pwd`/data/GeoLite2-City-CSV_20150505/GeoLite2-City-Blocks-IPv4.csv
+OUTFILE=`pwd`/data/cnsd-ip-locations.csv
+./scripts/geoip2-csv-converter-v0.0.1/geoip2-csv-converter -block-file=$INFILE -output-file=$OUTFILE -include-integer-range -include-cidr
+
+ruby scripts/load_db.rb ./data/cnsd-ip-locations.csv ./data/cnsd-ip-load.sql
+mysql -u root -p < ./data/cnsd-ip-load.sql
+ruby scripts/load_loc_db.rb ./data/GeoLite2-City-Locations-en.csv ./data/cnsd-ip-load-loc.sql
+mysql -u root -p < ./data/cnsd-ip-load-loc.sql
+
+
+
++++++++++
+
+DESTSVR='ubuntu@ec2-52-10-119-187.us-west-2.compute.amazonaws.com'
+rsync -h --progress --stats -r -tgo -p -l -D --update \
+--exclude=**/.** \
+--exclude=/db/schema.rb \
+--exclude=/log/ \
+--exclude=/tmp/ \
+--exclude=/help/ \
+--exclude=/nbproject/ \
+--exclude=/public/assets/ \
+--exclude=/docs/ \
+--protect-args \
+--delete \
+-e "ssh -i /home/phil/.ssh/CndsAmazonDemo1.pem" /home/phil/Documents/NetBeansProjects/ConsectedWeb/cnsd-locate-web/ $DESTSVR:/home/ubuntu/cnsd-locate-web
+
+
+ssh -i /home/phil/.ssh/CndsAmazonDemo1.pem $DESTSVR 2>&1 << EOF
+cd /home/ubuntu/cnsd-locate-web
+bundle update
+bundle exec rake assets:precompile RAILS_ENV=production
+sudo service nginx restart 
+EOF
+
+
+###
+DESTSVR2='ubuntu@ec2-52-10-119-187.us-west-2.compute.amazonaws.com'
+rsync -h --progress --stats -r -tgo -p -l -D --update \
+--exclude=**/.** \
+--exclude=/db/schema.rb \
+--exclude=/log/ \
+--exclude=/tmp/ \
+--exclude=/help/ \
+--exclude=/nbproject/ \
+--exclude=/public/assets/ \
+--exclude=/docs/ \
+--protect-args \
+--delete \
+-e "ssh -i /home/phil/.ssh/CndsAmazonDemo1.pem" /home/phil/Documents/NetBeansProjects/ConsectedWeb/cnsd-locate/ $DESTSVR2:/home/ubuntu/cnsd-locate
+
+
+ssh -i /home/phil/.ssh/CndsAmazonDemo1.pem $DESTSVR2 2>&1 << EOF
+cd /home/ubuntu/cnsd-locate-web
+bundle update
+sudo service cnsd-locate restart 
+EOF
