@@ -1,0 +1,24 @@
+connect cnsd_locate
+
+CREATE TABLE geo_locations(
+  id INT NOT NULL AUTO_INCREMENT,
+
+  geoname_id INT UNSIGNED,
+  
+	locale_code	VARCHAR(5),
+  continent_code 	VARCHAR(2),
+  continent_name 	VARCHAR(20),
+  country_iso_code VARCHAR(2),
+  country_name	VARCHAR(32),
+  subdivision_1_iso_code VARCHAR(5),
+	subdivision_1_name	VARCHAR(50),
+  subdivision_2_iso_code VARCHAR(5),
+	subdivision_2_name	VARCHAR(50),
+  city_name	VARCHAR(50),
+  metro_code	VARCHAR(3),
+  time_zone VARCHAR(32),
+  PRIMARY KEY (id),
+  KEY (geoname_id)
+  
+) ENGINE=InnoDB;    
+

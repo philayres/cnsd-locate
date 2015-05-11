@@ -1,0 +1,20 @@
+connect cnsd_locate
+
+CREATE TABLE ip_locations(
+  id INT NOT NULL AUTO_INCREMENT,
+  network VARCHAR(20) NOT NULL,
+  network_start_integer INT UNSIGNED,
+  network_last_integer INT UNSIGNED,
+	geoname_id INT UNSIGNED,
+	registered_country_geoname_id INT UNSIGNED,
+	represented_country_geoname_id INT UNSIGNED,
+	is_anonymous_proxy BOOL,
+	is_satellite_provider	BOOL,
+  postal_code	VARCHAR(32),
+  latitude VARCHAR(10),
+  longitude VARCHAR(10),  
+  PRIMARY KEY (id),
+  KEY (network_start_integer),
+  KEY (network_last_integer)
+) ENGINE=InnoDB;    
+
