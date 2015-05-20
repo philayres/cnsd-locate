@@ -29,16 +29,28 @@ module Location
             
       res = find_all_by condition
       
-      return nil unless res && res.first
+      unless res && res.first
+        KeepBusy.logger.info "No IP location found for #{addr}"
+        return nil 
+      end
       res = res.first
       
       g = res.geoname_id
-      return nil unless g && g != ''
+      unless g && g != ''
+        KeepBusy.logger.info "No geoname found for the location for IP #{addr}"
+        return nil 
+      end
+      
       
       gn = Location::GeoLocations.find_location(g)
-      return nil unless gn && gn.first
+      unless gn && gn.first
+        KeepBusy.logger.info "No geo location found for the location for IP #{addr} in geoname #{g}"     
+        return nil 
+      end
       
       res.location_details = gn.first
+      
+      KeepBusy.logger.info "Found a result for IP #{addr}, geoname #{g}\n#{res.to_json}"     
       
       res
       

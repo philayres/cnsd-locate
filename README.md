@@ -4,11 +4,15 @@ cnsd-locate: Consected Locate
 Consected Locate is a simple API platform providing IP geolocation lookup services to websites and other services needing access to 
 broad geographical positioning of a user based on their current IP address.
 
-This project is a work in progress, but is currently functional to provide:
+This project is a work in progress, but is currently functional enough to provide:
 
 * lookup city / country and (US-based 5-digit ZIP) based on provided IP address
 * add new Client API IDs / Secrets, to provide secure access to the service
 * leverage the one-time use of API calls provided by the em-secure-api service at: https://github.com/philayres/em-secure-api
+
+View a demo at: http://services.consected.com
+
+The source code for the demo website (and sample code for accessing this service) are at https://github.com/philayres/cnsd-locate-web
 
 Installation
 ----------------
@@ -55,6 +59,21 @@ downloading the data.
     mysql -u root -p < ./data/cnsd-ip-load.sql
     ruby scripts/load_loc_db.rb ./data/GeoLite2-City-Locations-en.csv ./data/cnsd-ip-load-loc.sql
     mysql -u root -p < ./data/cnsd-ip-load-loc.sql
+
+
+To Do
+-----
+
+The sample website attempts to send feedback from users when they indicate a location presented to them on a map is close by, or is inaccurate.
+
+The cnsd-locate service should accept these updates and record them in the database so that they can be analyzed. This is not currently done, and requests to the endpoints called are just rejected.
+
+The aim is to:
+
+* accept requests for Yes / No responses whether a request is close by, based on the reported IP address and potentially updated latitude / longitude
+* record the responses
+* update the IP lookup to check for an individual IP in the updates list up front, and return that instead of the main geo location database data
+* in the future, check for clusters of responses (yes or no), to allow IP address ranges to be formed to override the original data
 
 
 License

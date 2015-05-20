@@ -83,6 +83,8 @@ module SecureApi
         addr = addr.to_i
       end
       
+      KeepBusy.logger.info "lookup_ip for addr #{addr}"
+      
       if addr.nil? || addr == 0
         @reason = {message: "Invalid IP address format", code: 'INVALID_ADDR_FORMAT'}
         return
